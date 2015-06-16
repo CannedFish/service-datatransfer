@@ -1,0 +1,26 @@
+{
+  "name": "datatransfer",
+  "version": "0.1.0",
+  "description": "service for data transmission",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@124.16.141.145/ibp/service-datatransfer"
+  },
+  "keywords": [
+    "data",
+    "transmission"
+  ],
+  "author": "CannedFish",
+  "license": "ISC",
+  "dependencies": {
+    "webde-rpc": "~0.1.0",
+    "utils": "~0.1.0"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  }
+}
