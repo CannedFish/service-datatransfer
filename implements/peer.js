@@ -16,6 +16,7 @@ function Peer(option) {
       console.log('Connection to', addr, 'ended');
     }
   };
+  this._list = [];
 
   this._init();
 }
@@ -43,15 +44,18 @@ Peer.prototype._sockInit = function(cliSock) {
   // TODO: varify this connection
   var self = this,
       op = self._option;
+  self._list[cliSock] = [cliSock.remoteAddress, cliSock.remotePort];
   cliSock.on('data', function(data) {
-    console.log(this.remoteAddress + ':' + this.remotePort + ' sends: ', data);
+    // console.log(this.remoteAddress + ':' + this.remotePort + ' sends: ', data);
     // TODO: completeness validate
     // TODO: packet
     op.onRecive(data, this);
   }).on('error', function(err) {
     op.onError(err);
   }).on('end', function() {
-    op.onClose(this.remoteAddress + ':' + this.remotePort);
+    op.onClose(self._list[cliSock][0] + ':' + self._list[cliSock][1]);
+    self._list[cliSock] = null;
+    delete self._list[cliSock];
   });
 }
 
@@ -65,12 +69,12 @@ Peer.prototype.writablePeerStream
       cliSock = null;
   // TODO: maybe cache the connection
   try {
-    cliSock = net.connection(op.port, addr, function() {
+    cliSock = net.connect(op.port, addr, function() {
       // self._sockInit(cliSock);
       cb(null, cliSock);
     });
   } catch(e) {
-    cb(e);
+    cb(e + '');
   }
 }
 

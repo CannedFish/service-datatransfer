@@ -1,0 +1,9 @@
+{
+  "service": "dataTransfer",
+  "interfaces": [
+    {
+      "name": "cpFile",
+      "in": ["String", "String"]
+    }
+  ]
+}

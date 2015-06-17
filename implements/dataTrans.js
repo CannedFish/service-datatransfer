@@ -1,6 +1,6 @@
 var net = require('net'),
     fs = require('fs'),
-    event = require('event'),
+    event = require('events'),
     util = require('util');
 
 function DataTrans() {
@@ -12,7 +12,7 @@ function DataTrans() {
   });
 }
 
-DataTrans.prototype._cpFileFromRemote(src, dst, stream, callback) {
+DataTrans.prototype._cpFileFromRemote = function(src, dst, stream, callback) {
   var total = 0,
       now = 0,
       fileStream = fs.createWriteStream(dst),
@@ -24,7 +24,7 @@ DataTrans.prototype._cpFileFromRemote(src, dst, stream, callback) {
   }).on('error', function(err) {
     cb(err);
   }).on('end', function() {
-    cb(null);
+    console.log(dst, 'recives completely');
   });
 
   stream.once('data', function(data) {
@@ -32,6 +32,7 @@ DataTrans.prototype._cpFileFromRemote(src, dst, stream, callback) {
     if(total > 0) {
       stream.pipe(fileStream);
       stream.write('start:' + src);
+      cb(null);
     }
   }).on('error', function(e) {
     cb(err);
@@ -65,6 +66,13 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
     });
   } else {
     // copy from local to local
+    try {
+      var srcStream = fs.createReadStream(src[0]),
+          dstStream = fs.createWriteStream(dst[0]);
+      srcStream.pipe(dstStream);
+    } catch(e) {
+      cb(e);
+    }
   }
 }
 
@@ -82,9 +90,9 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       fs.stat(path, function(err, stats) {
         if(err) {
           writableStream.write('error:' + err);
-          return writablePeerStream.close();
+          return writableStream.close();
         }
-        writablePeerStream.write(stats.size + '');
+        writableStream.write(stats.size + '');
       });
       break;
     case 'start':
@@ -104,7 +112,13 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
   }
 }
 
-DataTrans.proto._onError = function(err) {
+DataTrans.prototype._onError = function(err) {
   console.log('onError:', err);
 }
+
+var dt = null;
+if(dt == null)
+  dt = new DataTrans();
+
+module.exports = dt;
 
