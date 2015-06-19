@@ -29,6 +29,7 @@ function stream2Stream(rStream, wStream, param) {
 
   rStream.on('data', function(data) {
     now += data.length;
+    // TODO: md5.update()
     // onProgress
     if(--threshold == 0) {
       stub.notify(evProgress, (now / total + '').substr(2, 2), dir);
@@ -40,8 +41,8 @@ function stream2Stream(rStream, wStream, param) {
   }).on('end', function() {
     // emit end
     if(now == total) {
-      // TODO: md5 check
       stub.notify(evProgress, 100, dir);
+      // TODO: md5 check
       stub.notify(evEnd, 0);
       console.log('file transmission succefully');
     } else {
@@ -143,6 +144,7 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       break;
     case 'recvreq':
       var path = proto[1];
+      // TODO: get md5sum concurrently
       fs.stat(path, function(err, stats) {
         if(err) {
           writableStream.write('error:' + err);

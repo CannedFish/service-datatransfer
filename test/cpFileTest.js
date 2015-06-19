@@ -1,11 +1,11 @@
 var proxy = require('../interface/dataTransferProxy').getProxy(),
-    src = '/home/lgy/t.iso',
-    dst = '/home/lgy/t1.iso',
+    src = process.env.HOME + '/t.iso',
+    dst = process.env.HOME + '/t1.iso',
     ip = '127.0.0.1';
 
 // hang on some events' handler
-proxy.on('progress#' + src, function(percentage, dir) {
-  console.log('Progress:', percentage + '%', dir);
+proxy.on('progress#' + src, function(percentage, msg) {
+  console.log('Progress:', percentage + '%', msg);
 }).on('error#' + src, function(err) {
   console.log('Error:', err);
 }).on('end#' + src, function(err) {
