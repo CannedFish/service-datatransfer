@@ -48,18 +48,18 @@ function stream2Stream(rStream, wStream, param) {
       stub.notify(evError, 'transmission stopped')
     }
   });
+
+  wStream.on('error', function(e) {
+    console.log(e)
+  });
+
+  rStream.pipe(wStream);
 }
 
 function cpFileFromRemote(src, dst, stream, callback) {
   var total = 0,
       fileStream = fs.createWriteStream(dst),
       cb = callback || function() {};
-
-  fileStream.on('error', function(err) {
-    cb(err);
-  }).on('end', function() {
-    console.log(dst, 'recives completely');
-  });
 
   stream.on('data', function(data) {
     total = parseInt(data + '');
@@ -73,7 +73,6 @@ function cpFileFromRemote(src, dst, stream, callback) {
         src: src,
         dir: 'recive'
       });
-      stream.pipe(fileStream);
       stream.write('start:' + src);
       cb(null);
     } else {
@@ -119,6 +118,7 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
     // copy from local to local
     fs.stat(src[0], function(err, stats) {
       if(err) return cb(err);
+      cb(null);
       var srcStream = fs.createReadStream(src[0]),
           dstStream = fs.createWriteStream(dst[0]),
           param = {
@@ -128,12 +128,6 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
             dir: 'copy'
           };
       stream2Stream(srcStream, dstStream, param);
-      dstStream.on('error', function(e) {
-        // emit error
-        console.log(e);
-      });
-      cb(null);
-      srcStream.pipe(dstStream);
     });
   }
 }
@@ -143,7 +137,6 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       self = dt;
   switch(proto[0]) {
     case 'sendreq':
-      // TODO: make sure there is no problem!! or call cpFile directly.
       cpFileFromRemote(proto[1], proto[2], writableStream, function(err) {
         if(err) console.log('sendreq error:', err);
       });
@@ -167,7 +160,6 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
     case 'start':
       // TODO: Not auto close
       var fileStream = fs.createReadStream(proto[1]);
-      fileStream.pipe(writableStream);
       stream2Stream(fileStream, writableStream, fList[proto[1]]);
       break;
     case 'error':
