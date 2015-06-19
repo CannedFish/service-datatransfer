@@ -61,7 +61,7 @@ Proxy.prototype.cpFile = function(String, String, callback) {
 
 /**
  * @description
- *    add listener for ...
+ *    add listener for progress#srcPath, error#srcPath, end#srcPath
  * @param
  *    param1: event to listen -> String
  *    param2: a listener function -> Function
@@ -74,11 +74,12 @@ Proxy.prototype.cpFile = function(String, String, callback) {
  */
 Proxy.prototype.on = function(event, handler) {
   this._ipc.on(event, handler);
+  return this;
 };
 
 /**
  * @description
- *    remove listener from ...
+ *    remove listener from progress#srcPath, error#srcPath, end#srcPath
  * @param
  *    param1: event to listen -> String
  *    param2: a listener function -> Function
@@ -91,6 +92,7 @@ Proxy.prototype.on = function(event, handler) {
  */
 Proxy.prototype.off = function(event, handler) {
   this._ipc.removeListener(event, handler);
+  return this;
 };
 
 var proxy = null;
