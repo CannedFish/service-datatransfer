@@ -64,7 +64,9 @@ function cpFileFromRemote(src, dst, stream, callback) {
   stream.on('data', function(data) {
     total = parseInt(data + '');
     if(total > 0) {
-      stream.removeAllListeners();
+      stream.removeAllListeners('data')
+        .removeAllListeners('error')
+        .removeAllListeners('end');
       stream2Stream(stream, fileStream, {
         total: total,
         now: 0,
@@ -80,14 +82,7 @@ function cpFileFromRemote(src, dst, stream, callback) {
   }).on('error', function(e) {
     cb(err);
   }).on('end', function() {
-    /* if(now == total) { */
-      // // TODO: md5 check
-      // stub.notify(evProgress, 100, 'recive');
-      // stub.notify(evEnd, 0);
-      // console.log('file transmission succefully');
-    // } else {
-      // console.log('transmission stopped');
-    /* } */
+    console.log('stream closed');
   });
   stream.write('recvreq:' + src);
 }
@@ -163,7 +158,8 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
         fList[path] = {
           total: stats.size,
           now: 0,
-          threshold: THRESHOLD
+          src: proto[1],
+          dir: 'send'
         };
         writableStream.write(stats.size + '');
       });
@@ -172,26 +168,7 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       // TODO: Not auto close
       var fileStream = fs.createReadStream(proto[1]);
       fileStream.pipe(writableStream);
-      fileStream.on('data', function(data) {
-        // TODO: onProgress
-        fList[proto[1]].now += data.length;
-        if(--fList[proto[1]].threshold == 0) {
-          stub.notify('progress#' + proto[1]
-            , (fList[proto[1]].now / fList[proto[1]].total + '').substr(2, 2), 'send');
-          fList[proto[1]].threshold = THRESHOLD;
-        }
-      }).on('error', function(err) {
-        self._onError(err);
-      }).on('end', function() {
-        if(fList[proto[1]].now == fList[proto[1]].total) {
-          // TODO: md5 check
-          stub.notify('progress#' + proto[1], 100, 'send');
-          stub.notify('end#' + proto[1], 0);
-          console.log('File transmission over.');
-        } else {
-          // TODO: handle
-        }
-      });
+      stream2Stream(fileStream, writableStream, fList[proto[1]]);
       break;
     case 'error':
       self._onError(proto[1]);
