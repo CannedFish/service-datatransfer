@@ -36,7 +36,7 @@ function stream2Stream(rStream, wStream, param) {
     }
   }).on('error', function(e) {
     // emit error
-    console.log(e);
+    stub.notify(evError, e + '')
   }).on('end', function() {
     // emit end
     if(now == total) {
@@ -45,7 +45,7 @@ function stream2Stream(rStream, wStream, param) {
       stub.notify(evEnd, 0);
       console.log('file transmission succefully');
     } else {
-      console.log('transmission stopped');
+      stub.notify(evError, 'transmission stopped')
     }
   });
 }
