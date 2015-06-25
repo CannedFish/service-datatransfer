@@ -20,9 +20,9 @@ var initObj = {
   ],
   "serviceObj": {
     cpFile: function(srcPath, dstPath, callback) {
-      dataTrans.cpFile(srcPath, dstPath, function(err) {
+      dataTrans.cpFile(srcPath, dstPath, function(err, key) {
         if(err) return callback({err: err});
-        callback({});
+        callback({ret: key});
       });
     }
   }

@@ -1,11 +1,18 @@
 var net = require('net'),
     fs = require('fs'),
     events = require('events'),
-    util = require('util');
+    util = require('util'),
+    uuid = require('node-uuid'),
+    crypto = require('crypto');
 
-// Buffer size = 65536 = 2^16, Buffer size * Threshold = 2 ^ 20 * 10 = 10M
+function keygen(baseStr) {
+  return crypto.createHash('md5').update(baseStr).digest('hex');
+}
+
+// Buffer size = 65536 = 2^16, Buffer size * Threshold = 2^16 * 2^4 * 10 = 10M
 var THRESHOLD = 160,
-    fList = [];
+    fList = [],
+    sessions = [];
 
 function DataTrans() {
   events.EventEmitter.call(this);
@@ -22,11 +29,16 @@ function stream2Stream(rStream, wStream, param) {
   var total = param.total,
       now = param.now,
       threshold = THRESHOLD,
-      evProgress = 'progress#' + param.src,
-      evError = 'error#' + param.src,
-      evEnd = 'end#' + param.src,
+      evProgress = 'progress#' + param.key,
+      evError = 'error#' + param.key,
+      evEnd = 'end#' + param.key,
       dir = param.dir;
 
+  sessions[param.key] = {
+    rs: rStream,
+    ws: wStream,
+    dir: param.dir;
+  };
   rStream.on('data', function(data) {
     now += data.length;
     // TODO: md5.update()
@@ -68,14 +80,15 @@ function cpFileFromRemote(src, dst, stream, callback) {
       stream.removeAllListeners('data')
         .removeAllListeners('error')
         .removeAllListeners('end');
+      // var key = keygen(src);
       stream2Stream(stream, fileStream, {
         total: total,
         now: 0,
-        src: src,
+        key: stream.id,
         dir: 'recive'
       });
       stream.write('start:' + src);
-      cb(null);
+      cb(null, stream.id);
     } else {
       // TODO: handle error
     }
@@ -113,24 +126,33 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
         self._onError(e);
       });
       stream.write('sendreq:' + src[0] + ':' + dst[1]);
-      cb(null);
+      cb(null, stream.id);
     });
   } else {
     // copy from local to local
     fs.stat(src[0], function(err, stats) {
       if(err) return cb(err);
-      cb(null);
       var srcStream = fs.createReadStream(src[0]),
           dstStream = fs.createWriteStream(dst[0]),
+          key = uuid.v1();
           param = {
             total: stats.size,
             now: 0,
-            src: src[0],
+            key: key,
             dir: 'copy'
           };
+      cb(null, key);
       stream2Stream(srcStream, dstStream, param);
     });
   }
+}
+
+function reqNotify(src, key, type) {
+  stub.notify('request', {
+    src: src,
+    sessionID: key,
+    type: type
+  });
 }
 
 DataTrans.prototype._onRecive = function(data, writableStream) {
@@ -138,11 +160,13 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       self = dt;
   switch(proto[0]) {
     case 'sendreq':
+      reqNotify(proto[1], writableStream.id, 'sendreq');
       cpFileFromRemote(proto[1], proto[2], writableStream, function(err) {
         if(err) console.log('sendreq error:', err);
       });
       break;
     case 'recvreq':
+      reqNotify(proto[1], writableStream.id, 'recvreq');
       var path = proto[1];
       // TODO: get md5sum concurrently
       fs.stat(path, function(err, stats) {
@@ -153,7 +177,7 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
         fList[path] = {
           total: stats.size,
           now: 0,
-          src: proto[1],
+          key: writableStream.id,
           dir: 'send'
         };
         writableStream.write(stats.size + '');

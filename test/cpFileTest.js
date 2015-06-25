@@ -3,20 +3,20 @@ var proxy = require('../interface/dataTransferProxy').getProxy(),
     dst = process.env.HOME + '/t1.iso',
     ip = '127.0.0.1';
 
-// hang on some events' handler
-proxy.on('progress#' + src, function(percentage, msg) {
-  console.log('Progress:', percentage + '%', msg);
-}).on('error#' + src, function(err) {
-  console.log('Error:', err);
-}).on('end#' + src, function(err) {
-  if(err) return console.log(err);
-  console.log('Transmission OK!');
-});
-
 function cpCallback(ret) {
   if(ret.err) {
     return console.log(ret.err);
   }
+  var sessionID = ret.ret;
+  // hang on some events' handler
+  proxy.on('progress#' + sessionID, function(percentage, msg) {
+    console.log('Progress:', percentage + '%', msg);
+  }).on('error#' + sessionID, function(err) {
+    console.log('Error:', err);
+  }).on('end#' + sessionID, function(err) {
+    if(err) return console.log(err);
+    console.log('Transmission OK!');
+  });
   console.log('File transferring...');
 }
 
@@ -26,6 +26,14 @@ if(process.argv[2] == 'l2r') {
 } else if(process.argv[2] == 'r2l') {
   // test from remote to local
   proxy.cpFile(ip + ':' + src, dst, cpCallback);
+  proxy.on('request', function(req) {
+    if(req.type == 'recvreq' && req.src == src) {
+      var key = req.sessionID;
+      setTimeout(function() {
+        // proxy.cancel(key);
+      }, 2000);
+    }
+  });
 } else if(process.argv[2] == 'l2l') {
   proxy.cpFile(src, dst, cpCallback);
 } else {
