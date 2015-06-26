@@ -97,7 +97,7 @@ function cpFileFromRemote(src, dst, stream, callback) {
   }).on('end', function() {
     console.log('stream closed');
   });
-  stream.write('recvreq:' + src);
+  stream.write('recvreq:' + src + ':' + stream.id);
 }
 
 DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
@@ -147,26 +147,29 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
   }
 }
 
-function reqNotify(src, key, type) {
-  stub.notify('request', {
-    src: src,
-    sessionID: key,
-    type: type
-  });
-}
+// TODO: Not needed now
+// function reqNotify(src, key, type) {
+  // stub.notify('request', {
+    // src: src,
+    // sessionID: key,
+    // type: type
+  // });
+// }
 
 DataTrans.prototype._onRecive = function(data, writableStream) {
   var proto = (data + '').split(':'),
       self = dt;
   switch(proto[0]) {
     case 'sendreq':
-      reqNotify(proto[1], writableStream.id, 'sendreq');
+      // reqNotify(proto[1], writableStream.id, 'sendreq');
+      writableStream.id = proto[1];
       cpFileFromRemote(proto[1], proto[2], writableStream, function(err) {
         if(err) console.log('sendreq error:', err);
       });
       break;
     case 'recvreq':
-      reqNotify(proto[1], writableStream.id, 'recvreq');
+      // reqNotify(proto[1], writableStream.id, 'recvreq');
+      writableStream.id = proto[1];
       var path = proto[1];
       // TODO: get md5sum concurrently
       fs.stat(path, function(err, stats) {
