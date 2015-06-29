@@ -244,7 +244,7 @@ var dt = null,
     stub = null;
 if(dt == null) {
   dt = new DataTrans();
-  stub = require('../interface/dataTransferStub').getStub(dt);
+  stub = require('../interface/datatransferStub').getStub(dt);
 }
 
 module.exports = dt;
