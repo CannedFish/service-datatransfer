@@ -18,7 +18,8 @@
   "license": "ISC",
   "dependencies": {
     "webde-rpc": "~0.1.0",
-    "utils": "~0.1.0"
+    "utils": "~0.1.0",
+    "node-uuid": "~1.4.3"
   },
   "engines": {
     "node": ">= 0.8.0"

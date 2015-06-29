@@ -16,11 +16,23 @@ var initObj = {
         "String",
         "String"
       ]
+    },
+    {
+      "name": "cancel",
+      "in": [
+        "String"
+      ]
     }
   ],
   "serviceObj": {
     cpFile: function(srcPath, dstPath, callback) {
-      dataTrans.cpFile(srcPath, dstPath, function(err) {
+      dataTrans.cpFile(srcPath, dstPath, function(err, key) {
+        if(err) return callback({err: err});
+        callback({ret: key});
+      });
+    },
+    cancel: function(sessionID, callback) {
+      dataTrans.cancel(sessionID, function(err) {
         if(err) return callback({err: err});
         callback({});
       });

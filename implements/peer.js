@@ -1,4 +1,5 @@
 var net = require('net'),
+    uuid = require('node-uuid'),
     Cache = require('utils').Cache();
 
 function Peer(option) {
@@ -45,6 +46,7 @@ Peer.prototype._sockInit = function(cliSock) {
   var self = this,
       op = self._option;
   self._list[cliSock] = [cliSock.remoteAddress, cliSock.remotePort];
+  cliSock.id = uuid.v1();
   cliSock.on('data', function(data) {
     // console.log(this.remoteAddress + ':' + this.remotePort + ' sends: ', data);
     // TODO: completeness validate
@@ -71,6 +73,7 @@ Peer.prototype.writablePeerStream
   try {
     cliSock = net.connect(op.port, addr, function() {
       // self._sockInit(cliSock);
+      cliSock.id = uuid.v1();
       cb(null, cliSock);
     });
   } catch(e) {
