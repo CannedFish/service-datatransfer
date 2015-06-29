@@ -4,6 +4,10 @@
     {
       "name": "cpFile",
       "in": ["String", "String"]
+    },
+    {
+      "name": "cancel",
+      "in": ["String"]
     }
   ]
 }

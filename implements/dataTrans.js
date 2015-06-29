@@ -12,7 +12,8 @@ function keygen(baseStr) {
 // Buffer size = 65536 = 2^16, Buffer size * Threshold = 2^16 * 2^4 * 10 = 10M
 var THRESHOLD = 160,
     fList = [],
-    sessions = [];
+    sessions = [],
+    noop = function() {};
 
 function DataTrans() {
   events.EventEmitter.call(this);
@@ -24,6 +25,37 @@ function DataTrans() {
   });
 }
 util.inherits(DataTrans, events.EventEmitter);
+
+DataTrans.prototype.cancel = function(sessionID, callback) {
+  var cb = callback || noop,
+      session = sessions[sessionID];
+  if(typeof session === 'undefined') 
+    return cb('Session not found!!');
+  session.rs.pause();
+  session.rs.unpipe(session.ws);
+  if(session.dir == 'send') {
+    session.ws.end('cancel:' + sessionID);
+    session.ws.destroy();
+    session.rs.close();
+  } else if(session.dir == 'recive') {
+    session.rs.end('cancel:' + sessionID);
+    session.rs.destroy();
+    session.ws.close();
+  } else {
+    session.rs.close();
+    session.ws.close();
+  }
+  sessions[sessionID] = null;
+  delete sessions[sessionID];
+  cb(null);
+}
+
+function sessionRemove(sessionID) {
+  if(typeof sessions[sessionID] !== 'undefined') {
+    sessions[sessionID] = null;
+    delete sessions[sessionID];
+  }
+}
 
 function stream2Stream(rStream, wStream, param) {
   var total = param.total,
@@ -39,7 +71,7 @@ function stream2Stream(rStream, wStream, param) {
     ws: wStream,
     dir: param.dir
   };
-  console.log('session key:', param.key, sessions[param.key].dir);
+  // console.log('session key:', param.key, sessions[param.key].dir);
   rStream.on('data', function(data) {
     now += data.length;
     // TODO: md5.update()
@@ -51,7 +83,7 @@ function stream2Stream(rStream, wStream, param) {
   }).on('error', function(e) {
     // emit error
     stub.notify(evError, e + '')
-  }).on('end', function() {
+  }).on('end', function(data) {
     // emit end
     if(now == total) {
       stub.notify(evProgress, 100, dir);
@@ -61,10 +93,14 @@ function stream2Stream(rStream, wStream, param) {
     } else {
       stub.notify(evError, 'transmission stopped')
     }
+    // delete session
+    sessionRemove(param.key);
   });
 
   wStream.on('error', function(e) {
-    console.log(e)
+    console.log(e);
+  }).on('end', function(data) {
+    sessionRemove(param.key);
   });
 
   rStream.pipe(wStream);
@@ -73,7 +109,7 @@ function stream2Stream(rStream, wStream, param) {
 function cpFileFromRemote(src, dst, stream, callback) {
   var total = 0,
       fileStream = fs.createWriteStream(dst),
-      cb = callback || function() {};
+      cb = callback || noop;
 
   stream.on('data', function(data) {
     total = parseInt(data + '');
@@ -104,7 +140,7 @@ function cpFileFromRemote(src, dst, stream, callback) {
 DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
   var src = srcDir.split(':'),
       dst = dstDir.split(':'),
-      cb = callback || function() {},
+      cb = callback || noop,
       self = this,
       peer = self._peer;
   // Not support for coping from one remote to the other remote.

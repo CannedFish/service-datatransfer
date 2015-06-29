@@ -45,6 +45,11 @@ function Proxy() {
  *    param1: src directory -> String
  *    param2: dst directory -> String
  *    e.g. IP:path, 192.168.1.100:/path/to/file or just /path/to/file
+ *    param3: callback function -> Function
+ *      @description
+ *        a callback function called to get returns
+ *      @param
+ *        param1: return object -> Object
  * @return
  *    Error description or nothing
  */
@@ -54,6 +59,30 @@ Proxy.prototype.cpFile = function(String, String, callback) {
   this._ipc.invoke({
     token: this._token++,
     name: 'cpFile',
+    in: args,
+    callback: callback
+  });
+};
+
+/**
+ * @description
+ *    cancel data transmission
+ * @param
+ *    param1: session's ID -> String
+ *    param2: callback function -> Function
+ *      @description
+ *        a callback function called to get returns
+ *      @param
+ *        param1: return object -> Object
+ * @return
+ *    Error description or nothing
+ */
+Proxy.prototype.cancel = function(String, callback) {
+  var l = arguments.length,
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'cancel',
     in: args,
     callback: callback
   });

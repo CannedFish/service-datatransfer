@@ -8,7 +8,7 @@ function cpCallback(ret) {
     return console.log(ret.err);
   }
   var sessionID = ret.ret;
-  console.log(sessionID);
+  // console.log(sessionID);
   // hang on some events' handler
   proxy.on('progress#' + sessionID, function(percentage, msg) {
     console.log('Progress:', percentage + '%', msg);
@@ -19,6 +19,14 @@ function cpCallback(ret) {
     console.log('Transmission OK!');
   });
   console.log('File transferring...');
+
+  // cancel test
+  setTimeout(function() {
+    proxy.cancel(sessionID, function(ret) {
+      if(ret.err) return console.log(ret.err);
+      console.log('File transmission canceled.');
+    });
+  }, 4000);
 }
 
 if(process.argv[2] == 'l2r') {
