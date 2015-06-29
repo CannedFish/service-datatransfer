@@ -8,6 +8,7 @@ function cpCallback(ret) {
     return console.log(ret.err);
   }
   var sessionID = ret.ret;
+  console.log(sessionID);
   // hang on some events' handler
   proxy.on('progress#' + sessionID, function(percentage, msg) {
     console.log('Progress:', percentage + '%', msg);

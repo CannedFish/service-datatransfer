@@ -37,8 +37,9 @@ function stream2Stream(rStream, wStream, param) {
   sessions[param.key] = {
     rs: rStream,
     ws: wStream,
-    dir: param.dir;
+    dir: param.dir
   };
+  console.log('session key:', param.key, sessions[param.key].dir);
   rStream.on('data', function(data) {
     now += data.length;
     // TODO: md5.update()
@@ -125,7 +126,7 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
       }).on('error', function(e) {
         self._onError(e);
       });
-      stream.write('sendreq:' + src[0] + ':' + dst[1]);
+      stream.write('sendreq:' + src[0] + ':' + dst[1] + ':' + stream.id);
       cb(null, stream.id);
     });
   } else {
@@ -162,14 +163,14 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
   switch(proto[0]) {
     case 'sendreq':
       // reqNotify(proto[1], writableStream.id, 'sendreq');
-      writableStream.id = proto[1];
+      writableStream.id = proto[3];
       cpFileFromRemote(proto[1], proto[2], writableStream, function(err) {
         if(err) console.log('sendreq error:', err);
       });
       break;
     case 'recvreq':
       // reqNotify(proto[1], writableStream.id, 'recvreq');
-      writableStream.id = proto[1];
+      writableStream.id = proto[2];
       var path = proto[1];
       // TODO: get md5sum concurrently
       fs.stat(path, function(err, stats) {
