@@ -1,4 +1,4 @@
-var proxy = require('../interface/dataTransferProxy').getProxy(),
+var proxy = require('../interface/datatransferProxy').getProxy(),
     src = process.env.HOME + '/t.iso',
     dst = process.env.HOME + '/t1.iso',
     ip = '127.0.0.1';
