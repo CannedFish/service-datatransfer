@@ -211,8 +211,8 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       // TODO: get md5sum concurrently
       fs.stat(path, function(err, stats) {
         if(err) {
-          writableStream.write('error:' + err);
-          return writableStream.close();
+          writableStream.end('error:' + err);
+          return writableStream.destroy();
         }
         fList[path] = {
           total: stats.size,
