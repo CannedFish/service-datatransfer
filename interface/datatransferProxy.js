@@ -88,6 +88,34 @@ Proxy.prototype.cancel = function(String, callback) {
   });
 };
 
+var net = require('net');
+function pipeChannel(sessionID, callback) {
+}
+
+function pipeChannelCB(err, channel) {
+}
+/**
+ * @description
+ *    Set up a data channel and binding with the channel represeted by sessionID
+ * @param
+ *    param1: session's ID or ip address -> String
+ *    param2: callback function -> Function
+ *      @description
+ *        a callback function called to get returns
+ *      @param
+ *        param1: err description or null -> String or null
+ *        param2: data channel
+ * @return
+ *    Error description or data channel
+ */
+Proxy.prototype.getChannel = function(sessionID, callback) {
+  if(net.isIP(sessionID)) {
+    // TODO: tell dt service to new a session
+  } else {
+    pipeChannel(sID, pipeChannelCB)
+  }
+}
+
 /**
  * @description
  *    add listener for progress#srcPath, error#srcPath, end#srcPath
