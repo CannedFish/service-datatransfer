@@ -3,6 +3,7 @@
 // TODO: please replace types with peramters' name you wanted of any functions
 // TODO: please replace $ipcType with one of dbus, binder, websocket and socket
 
+var channel = require('../implements/channel');
 var initObj = {
   "address": "nodejs.webde.dataTransfer",
   "path": "/nodejs/webde/dataTransfer",
@@ -22,6 +23,12 @@ var initObj = {
       "in": [
         "String"
       ]
+    },
+    {
+      "name": "getChannel",
+      "in": [
+        "Object"
+      ]
     }
   ],
   "serviceObj": {
@@ -35,6 +42,12 @@ var initObj = {
       dataTrans.cancel(sessionID, function(err) {
         if(err) return callback({err: err});
         callback({});
+      });
+    },
+    getChannel: function(terget, callback) {
+      channel.getChannel(target, function(err, path) {
+        if(err) return callback({err: err});
+        callback({ret: path});
       });
     }
   }

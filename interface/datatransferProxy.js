@@ -89,16 +89,14 @@ Proxy.prototype.cancel = function(String, callback) {
 };
 
 var net = require('net');
-function pipeChannel(sessionID, callback) {
-}
-
-function pipeChannelCB(err, channel) {
-}
 /**
  * @description
  *    Set up a data channel and binding with the channel represeted by sessionID
  * @param
- *    param1: session's ID or ip address -> String
+ *    param1: {
+ *      addr: peer's addr(default is undefined),
+ *      sessionID: ID of an existed session(default is undefined)
+ *    } -> Object 
  *    param2: callback function -> Function
  *      @description
  *        a callback function called to get returns
@@ -108,12 +106,23 @@ function pipeChannelCB(err, channel) {
  * @return
  *    Error description or data channel
  */
-Proxy.prototype.getChannel = function(sessionID, callback) {
-  if(net.isIP(sessionID)) {
-    // TODO: tell dt service to new a session
-  } else {
-    pipeChannel(sID, pipeChannelCB)
-  }
+Proxy.prototype.getChannel = function(target, callback) {
+  var l = arguments.length,
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1)),
+      cb = function(ret) {
+        if(ret.err) return callback(ret.err);
+        var session = ret.ret,
+            channel = net.connect({path: session.path}, function() {
+              channel.id = session.id;
+              callback(null, channel);
+            });
+      };
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'cancel',
+    in: args,
+    callback: cb
+  });
 }
 
 /**
