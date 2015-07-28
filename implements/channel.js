@@ -2,33 +2,16 @@ var net = require('net'),
     os = require('os'),
     uuid = require('node-uuid'),
     peer = require('./peer'),
+    proto = require('./proto'),
     noop = function() {},
-    localServPath = os.tmpdir() + '/dc.sock',
-    localServ = null,
-    channels = [];
-
-function protoParse(channel, msg) {
-  switch(msg[0]) {
-    case '0': // ConnPeer
-      break;
-    case '1': // SetID
-      break;
-    case '2': // binding(client channel & dt's channel)
-      break;
-    default:
-      break;
-  }
-}
+    localServName = uuid.v1(),
+    localServPath = os.tmpdir() + '/' + localServName + '.sock',
+    localServ = null;
 
 exports.getChannel = function(target, callback) {
   var cb = callback || noop;
-  if(target.addr && net.isIP(target.addr)) {
-    // TODO: connect to target address
-    // TODO: put this channel in channels' src channel
-  } else if(target.sessionID) {
-    // TODO: get an exited channel based on sessionID
-  }
-  return cb(null, localServPath, sessionID);
+  // TODO: check authentication
+  return cb(null, localServPath);
 }
 
 exports.localServerStart = function(callback) {
@@ -37,6 +20,11 @@ exports.localServerStart = function(callback) {
   localServ = net.createServer(function(channel) {
     channel.id = uuid.v1();
     // TODO: put this channel in channels' src channel
+    proto.tunnelInsert(channel.id, [channel]);
+    channel.on('data', function(chuck) {
+      console.log(chuck + '');
+      proto.parse(channel, (chuck + '').split(':'));
+    });
   });
   localServ.listen(localServPath, function() {
     console.log('DataTransfer\'s channel is listening on ' + localServPath);

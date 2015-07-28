@@ -44,7 +44,7 @@ var initObj = {
         callback({});
       });
     },
-    getChannel: function(terget, callback) {
+    getChannel: function(target, callback) {
       channel.getChannel(target, function(err, path) {
         if(err) return callback({err: err});
         callback({ret: path});

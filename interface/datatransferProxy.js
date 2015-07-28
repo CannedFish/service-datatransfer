@@ -110,16 +110,41 @@ Proxy.prototype.getChannel = function(target, callback) {
   var l = arguments.length,
       args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1)),
       cb = function(ret) {
+        console.log('getChannel:', ret);
         if(ret.err) return callback(ret.err);
         var session = ret.ret,
             channel = net.connect({path: session.path}, function() {
-              channel.id = session.id;
-              callback(null, channel);
-            });
+              if(target.addr) {
+                channel.write('0:' + target.addr);
+              } else if (target.sessionID) {
+                channel.id = target.sessionID;
+                callback(null, channel);
+                channel.write('2:' + target.sessionID);
+              }
+            }),
+            dataHandle = function(chuck) {
+              console.log(chuck + '');
+              var msg = (chuck + '').split(':');
+              if(msg[0] == '0') {
+                if(msg[1] == 'OK') {
+                  channel.id = msg[2];
+                  callback(null, channel);
+                  channel.write('2:' + msg[2]);
+                } else {
+                  return callback('Error: ' + msg[2]);
+                }
+              } else if(msg[0] == '2') {
+                if(msg[1] != 'OK') {
+                  throw 'Fail to bind this process to DataTransfer.';
+                }
+                channel.removeListener('data', dataHandle);
+              }
+            };
+        channel.on('data', dataHandle);
       };
   this._ipc.invoke({
     token: this._token++,
-    name: 'cancel',
+    name: 'getChannel',
     in: args,
     callback: cb
   });
