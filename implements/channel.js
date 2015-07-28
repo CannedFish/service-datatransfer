@@ -1,7 +1,6 @@
 var net = require('net'),
     os = require('os'),
     uuid = require('node-uuid'),
-    peer = require('./peer'),
     proto = require('./proto'),
     noop = function() {},
     localServName = uuid.v1(),
@@ -22,8 +21,7 @@ exports.localServerStart = function(callback) {
     // TODO: put this channel in channels' src channel
     proto.tunnelInsert(channel.id, [channel]);
     channel.on('data', function(chuck) {
-      console.log(chuck + '');
-      proto.parse(channel, (chuck + '').split(':'));
+      proto.parse(this, (chuck + '').split(':'));
     });
   });
   localServ.listen(localServPath, function() {

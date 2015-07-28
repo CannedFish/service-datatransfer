@@ -112,8 +112,8 @@ Proxy.prototype.getChannel = function(target, callback) {
       cb = function(ret) {
         console.log('getChannel:', ret);
         if(ret.err) return callback(ret.err);
-        var session = ret.ret,
-            channel = net.connect({path: session.path}, function() {
+        var servPath = ret.ret,
+            channel = net.connect({path: servPath}, function() {
               if(target.addr) {
                 channel.write('0:' + target.addr);
               } else if (target.sessionID) {
