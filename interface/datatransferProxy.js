@@ -110,7 +110,6 @@ Proxy.prototype.getChannel = function(target, callback) {
   var l = arguments.length,
       args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1)),
       cb = function(ret) {
-        console.log('getChannel:', ret);
         if(ret.err) return callback(ret.err);
         var servPath = ret.ret,
             channel = net.connect({path: servPath}, function() {
@@ -118,12 +117,11 @@ Proxy.prototype.getChannel = function(target, callback) {
                 channel.write('0:' + target.addr);
               } else if (target.sessionID) {
                 channel.id = target.sessionID;
-                callback(null, channel);
                 channel.write('2:' + target.sessionID);
               }
             }),
             dataHandle = function(chuck) {
-              console.log(chuck + '');
+              // console.log(chuck + '');
               var msg = (chuck + '').split(':');
               if(msg[0] == '0') {
                 if(msg[1] == 'OK') {
@@ -138,6 +136,7 @@ Proxy.prototype.getChannel = function(target, callback) {
                   throw 'Fail to bind this process to DataTransfer.';
                 }
                 channel.removeListener('data', dataHandle);
+                callback(null, channel);
               }
             };
         channel.on('data', dataHandle);

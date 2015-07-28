@@ -9,8 +9,8 @@ exports.parse = function(channel, msg) {
         if(err) return channel.write('0:ERROR-' + err);
         peerChannel.id = channel.id;
         tunnels[channel.id].push(peerChannel);
-        channel.write('0:OK:' + channel.id);
         peerChannel.write('1:' + channel.id);
+        channel.write('0:OK:' + channel.id);
       });
       break;
     case '1': // SetID
@@ -39,7 +39,9 @@ exports.parse = function(channel, msg) {
       }).on('error', function(err) {
         console.log(this.id, ' src [ERROR]:', err);
       });
-      tunnel[1].on('error', function(err) {
+      tunnel[1].on('data', function(chuck) {
+        tunnel[0].write(chuck);
+      }).on('error', function(err) {
         console.log(this.id, ' dst [ERROR]:', err);
       });
       channel.write('2:OK');
