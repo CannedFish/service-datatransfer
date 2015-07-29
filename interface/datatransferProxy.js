@@ -88,6 +88,67 @@ Proxy.prototype.cancel = function(String, callback) {
   });
 };
 
+var net = require('net');
+/**
+ * @description
+ *    Set up a data channel and binding with the channel represeted by sessionID
+ * @param
+ *    param1: {
+ *      addr: peer's addr(default is undefined),
+ *      sessionID: ID of an existed session(default is undefined)
+ *    } -> Object 
+ *    param2: callback function -> Function
+ *      @description
+ *        a callback function called to get returns
+ *      @param
+ *        param1: err description or null -> String or null
+ *        param2: data channel
+ * @return
+ *    Error description or data channel
+ */
+Proxy.prototype.getChannel = function(target, callback) {
+  var l = arguments.length,
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1)),
+      cb = function(ret) {
+        if(ret.err) return callback(ret.err);
+        var servPath = ret.ret,
+            channel = net.connect({path: servPath}, function() {
+              if(target.addr) {
+                channel.write('0:' + target.addr);
+              } else if (target.sessionID) {
+                channel.id = target.sessionID;
+                channel.write('2:' + target.sessionID);
+              }
+            }),
+            dataHandle = function(chuck) {
+              // console.log(chuck + '');
+              var msg = (chuck + '').split(':');
+              if(msg[0] == '0') {
+                if(msg[1] == 'OK') {
+                  channel.id = msg[2];
+                  callback(null, channel);
+                  channel.write('2:' + msg[2]);
+                } else {
+                  return callback('Error: ' + msg[2]);
+                }
+              } else if(msg[0] == '2') {
+                if(msg[1] != 'OK') {
+                  throw 'Fail to bind this process to DataTransfer.';
+                }
+                channel.removeListener('data', dataHandle);
+                callback(null, channel);
+              }
+            };
+        channel.on('data', dataHandle);
+      };
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'getChannel',
+    in: args,
+    callback: cb
+  });
+}
+
 /**
  * @description
  *    add listener for progress#srcPath, error#srcPath, end#srcPath

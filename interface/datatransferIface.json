@@ -8,6 +8,11 @@
     {
       "name": "cancel",
       "in": ["String"]
+    },
+    {
+      "name": "getChannel",
+      "in": ["String"]
     }
   ]
 }
+

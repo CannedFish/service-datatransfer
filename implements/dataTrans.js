@@ -3,7 +3,8 @@ var net = require('net'),
     events = require('events'),
     util = require('util'),
     uuid = require('node-uuid'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    channel = require('./channel');
 
 function keygen(baseStr) {
   return crypto.createHash('md5').update(baseStr).digest('hex');
@@ -243,6 +244,7 @@ DataTrans.prototype._onError = function(err) {
 var dt = null,
     stub = null;
 if(dt == null) {
+  channel.localServerStart();
   dt = new DataTrans();
   stub = require('../interface/datatransferStub').getStub(dt);
 }

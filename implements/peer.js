@@ -1,6 +1,7 @@
 var net = require('net'),
     uuid = require('node-uuid'),
-    Cache = require('utils').Cache();
+    Cache = require('utils').Cache(),
+    proto = require('./proto');
 
 function Peer(option) {
   // option initialize
@@ -52,6 +53,7 @@ Peer.prototype._sockInit = function(cliSock) {
     // TODO: completeness validate
     // TODO: packet
     op.onRecive(data, this);
+    proto.parse(cliSock, (data + '').split(':'));
   }).on('error', function(err) {
     op.onError(err);
   }).on('end', function() {
