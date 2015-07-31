@@ -4,7 +4,8 @@ var net = require('net'),
     util = require('util'),
     uuid = require('node-uuid'),
     crypto = require('crypto'),
-    channel = require('./channel');
+    channel = require('./channel'),
+    channelProto = require('./proto');
 
 function keygen(baseStr) {
   return crypto.createHash('md5').update(baseStr).digest('hex');
@@ -233,7 +234,8 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       self._onError(proto[1]);
       break;
     default:
-      console.log('Unknown:', proto[0]);
+      channelProto.parse(writableStream, proto);
+      // console.log('Unknown:', proto[0]);
   }
 }
 
