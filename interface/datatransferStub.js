@@ -3,7 +3,6 @@
 // TODO: please replace types with peramters' name you wanted of any functions
 // TODO: please replace $ipcType with one of dbus, binder, websocket and socket
 
-var channel = require('../implements/channel');
 var initObj = {
   "address": "nodejs.webde.dataTransfer",
   "path": "/nodejs/webde/dataTransfer",
@@ -63,11 +62,13 @@ Stub.prototype.notify = function(event) {
 };
 
 var stub = null,
-    dataTrans = null;
+    dataTrans = null,
+    channel = null;
 exports.getStub = function(dataTrans_) {
   if(stub == null) {
     stub = new Stub();
     dataTrans = dataTrans_;
+    channel = require('../implements/channel');
   }
   return stub;
 }

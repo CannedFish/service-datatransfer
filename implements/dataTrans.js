@@ -233,7 +233,8 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       self._onError(proto[1]);
       break;
     default:
-      console.log('Unknown:', proto[0]);
+      proto.parse(writableStream, proto);
+      // console.log('Unknown:', proto[0]);
   }
 }
 

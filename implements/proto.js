@@ -1,11 +1,11 @@
 var tunnels = [],
-    peer = require('./peer').instance();
+    peer = require('./peer');
 
 exports.parse = function(channel, msg) {
   console.log('tunnel parse:', msg)
   switch(msg[0]) {
     case '0': // ConnPeer
-      peer.peerStream(msg[1], function(err, peerChannel) {
+      peer.instance().peerStream(msg[1], function(err, peerChannel) {
         if(err) return channel.write('0:ERROR-' + err);
         peerChannel.id = channel.id;
         tunnels[channel.id].push(peerChannel);
