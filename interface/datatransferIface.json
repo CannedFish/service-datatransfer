@@ -10,8 +10,12 @@
       "in": ["String"]
     },
     {
-      "name": "getChannel",
+      "name": "status",
       "in": ["String"]
+    },
+    {
+      "name": "getChannel",
+      "in": ["Object"]
     }
   ]
 }

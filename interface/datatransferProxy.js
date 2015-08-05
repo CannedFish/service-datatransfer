@@ -88,6 +88,30 @@ Proxy.prototype.cancel = function(String, callback) {
   });
 };
 
+/**
+ * @description
+ *    check the status of a data transmission
+ * @param
+ *    param1: session's ID -> String
+ *    param2: callback function -> Function
+ *      @description
+ *        a callback function called to get returns
+ *      @param
+ *        param1: return object -> Object
+ * @return
+ *    Error description or nothing
+ */
+Proxy.prototype.status = function(String, callback) {
+  var l = arguments.length,
+      args = Array.prototype.slice.call(arguments, 0, (typeof callback === 'undefined' ? l : l - 1));
+  this._ipc.invoke({
+    token: this._token++,
+    name: 'status',
+    in: args,
+    callback: callback
+  });
+};
+
 var net = require('net');
 /**
  * @description
