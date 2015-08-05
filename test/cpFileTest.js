@@ -8,9 +8,6 @@ function cpCallback(ret) {
     return console.log(ret.err);
   }
   var sessionID = ret.ret;
-  proxy.status(sessionID, function(ret) {
-    console.log(ret);
-  });
   // console.log(sessionID);
   // hang on some events' handler
   proxy.on('progress#' + sessionID, function(percentage, msg) {
@@ -20,11 +17,17 @@ function cpCallback(ret) {
   }).on('end#' + sessionID, function(err) {
     if(err) return console.log(err);
     console.log('Transmission OK!');
+    clearTimeout(to);
     proxy.status(sessionID, function(ret) {
       console.log(ret);
     });
   });
   console.log('File transferring...');
+  var to = setTimeout(function() {
+    proxy.status(sessionID, function(ret) {
+      console.log(ret);
+    });
+  }, 2000);
 
   // cancel test
   setTimeout(function() {
