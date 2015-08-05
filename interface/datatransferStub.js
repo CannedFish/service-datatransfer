@@ -24,6 +24,12 @@ var initObj = {
       ]
     },
     {
+      "name": "status",
+      "in": [
+        "String"
+      ]
+    },
+    {
       "name": "getChannel",
       "in": [
         "Object"
@@ -41,6 +47,12 @@ var initObj = {
       dataTrans.cancel(sessionID, function(err) {
         if(err) return callback({err: err});
         callback({});
+      });
+    },
+    status: function(sessionID, callback) {
+      dataTrans.status(sessionID, function(err, status) {
+        if(err) return callback({err: err});
+        callback({ret: status});
       });
     },
     getChannel: function(target, callback) {

@@ -4,6 +4,8 @@ var net = require('net'),
     util = require('util'),
     uuid = require('node-uuid'),
     crypto = require('crypto'),
+    utils = require('utils'),
+    Cache = utils.Cache(),
     channel = require('./channel'),
     channelProto = require('./proto');
 
@@ -15,6 +17,7 @@ function keygen(baseStr) {
 var THRESHOLD = 160,
     fList = [],
     sessions = [],
+    statusCache = new Cache(20),
     noop = function() {};
 
 function DataTrans() {
@@ -27,6 +30,15 @@ function DataTrans() {
   });
 }
 util.inherits(DataTrans, events.EventEmitter);
+
+DataTrans.prototype.status = function(sessionID, callback) {
+  var cb = callback || noop;
+  try {
+    cb(null, statusCache.get(sessionID));
+  } catch(e) {
+    cb('session status not found');
+  }
+}
 
 DataTrans.prototype.cancel = function(sessionID, callback) {
   var cb = callback || noop,
@@ -49,6 +61,7 @@ DataTrans.prototype.cancel = function(sessionID, callback) {
   }
   sessions[sessionID] = null;
   delete sessions[sessionID];
+  statusCache.set(sessionID, 'cancel');
   cb(null);
 }
 
@@ -92,8 +105,10 @@ function stream2Stream(rStream, wStream, param) {
       // TODO: md5 check
       stub.notify(evEnd, 0);
       console.log('file transmission succefully');
+      statusCache.set(param.key, 'done');
     } else {
       stub.notify(evError, 'transmission stopped')
+      statusCache.set(param.key, 'stopped');
     }
     // delete session
     sessionRemove(param.key);
@@ -127,6 +142,7 @@ function cpFileFromRemote(src, dst, stream, callback) {
         dir: 'recive'
       });
       stream.write('start:' + src);
+      statusCache.set(stream.id, 'reciving');
       cb(null, stream.id);
     } else {
       // TODO: handle error
@@ -182,6 +198,7 @@ DataTrans.prototype.cpFile = function(srcDir, dstDir, callback) {
           };
       cb(null, key);
       stream2Stream(srcStream, dstStream, param);
+      statusCache.set(key, 'copying');
     });
   }
 }
@@ -229,6 +246,7 @@ DataTrans.prototype._onRecive = function(data, writableStream) {
       // TODO: Not auto close
       var fileStream = fs.createReadStream(proto[1]);
       stream2Stream(fileStream, writableStream, fList[proto[1]]);
+      statusCache.set(writableStream.id, 'sending');
       break;
     case 'error':
       self._onError(proto[1]);

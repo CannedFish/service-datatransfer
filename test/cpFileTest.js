@@ -17,14 +17,26 @@ function cpCallback(ret) {
   }).on('end#' + sessionID, function(err) {
     if(err) return console.log(err);
     console.log('Transmission OK!');
+    clearTimeout(to);
+    proxy.status(sessionID, function(ret) {
+      console.log(ret);
+    });
   });
   console.log('File transferring...');
+  var to = setTimeout(function() {
+    proxy.status(sessionID, function(ret) {
+      console.log(ret);
+    });
+  }, 2000);
 
   // cancel test
   setTimeout(function() {
     proxy.cancel(sessionID, function(ret) {
       if(ret.err) return console.log(ret.err);
       console.log('File transmission canceled.');
+    });
+    proxy.status(sessionID, function(ret) {
+      console.log(ret);
     });
   }, 4000);
 }
