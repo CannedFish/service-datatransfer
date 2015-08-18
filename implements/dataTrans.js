@@ -266,7 +266,7 @@ var dt = null,
 if(dt == null) {
   channel.localServerStart();
   dt = new DataTrans();
-  stub = require('../interface/datatransferStub').getStub(dt);
+  stub = require('../interface/stub').getStub(dt);
 }
 
 module.exports = dt;
